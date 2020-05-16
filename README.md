@@ -1,0 +1,2 @@
+# Haskell-pyramids
+Pyramids puzzle
