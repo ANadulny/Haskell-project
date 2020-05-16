@@ -12,7 +12,7 @@ solvePuzzle pyramids board = let highestPyramid = getSize board in
 transss :: Board -> Board
 transss (Board rows) = Board (transpose (rows))
 
--- -- funkcja wywoływana po umieszczeniu na tablicy piramidy
+-- funkcja wywoływana po umieszczeniu na tablicy piramidy
 nextStep :: Pyramids -> Board -> Int -> Cell -> Board
 nextStep pyramids board height cell = 
     if (isOnBoard (getSize board) cell) then --sprawdza czy wypełniono cały wiersz
@@ -28,8 +28,8 @@ nextStep pyramids board height cell =
         prevCell = previousCell board cell
         prevHeight = getCell board prevCell
 
--- -- funkcja próbująca umieścić piramidę na polu
--- -- zaczyna od umieszczenia piramidy o max wysokości, jeśli niemożliwe to w kolejnych krokach zmniejsza wysokość
+-- funkcja próbująca umieścić piramidę na polu
+-- zaczyna od umieszczenia piramidy o max wysokości, jeśli niemożliwe to w kolejnych krokach zmniejsza wysokość
 pyramidOnCell :: Pyramids -> Board -> Cell -> Int -> Board
 pyramidOnCell pyramids board (x,y) h =
     if h > 0 then
@@ -42,7 +42,7 @@ pyramidOnCell pyramids board (x,y) h =
         prevCell = previousCell board (x,y)
         prevHeight = getCell board prevCell
 
--- -- funkcja wywoływana, gdy trzeba było cofnąć się do poprzedniej komórki
+-- funkcja wywoływana, gdy trzeba było cofnąć się do poprzedniej komórki
 prevStep :: Pyramids -> Board -> Int -> Cell ->Board
 prevStep pyramids board height cell = 
     if (height == 1) then -- jeśli była 1 to umieszcza 0 i probuje umiescic w poprzedniej komorce wartość o 1 mniejszą
@@ -52,7 +52,7 @@ prevStep pyramids board height cell =
         prevCell = previousCell board cell
         prevHeight = getCell board prevCell
 
--- -- funkcja sprawdzająca, czy dana wartość występuje już w wierszu lub kolumnie, na skrzyżowaniu których leży komórka
+-- funkcja sprawdzająca, czy dana wartość występuje już w wierszu lub kolumnie, na skrzyżowaniu których leży komórka
 isUnique :: Board -> Cell -> Int -> Bool
 isUnique (Board rows) (x,y) h = let
     inRow = elem h (rows !! x)
@@ -61,7 +61,7 @@ isUnique (Board rows) (x,y) h = let
         then False
     else True
         
--- -- funkcja sprawdzająca, czy piramida o danej wysokości nie jest za wysoka by stanąć w danym miejscu
+-- funkcja sprawdzająca, czy piramida o danej wysokości nie jest za wysoka by stanąć w danym miejscu
 pyramidConstraint :: Pyramids -> Board -> Cell -> Int -> Bool
 pyramidConstraint (Pyramids t b l r) board (x,y) h = (checkLeft && checkRight && checkTop && checkBottom)
     where 
@@ -75,8 +75,7 @@ canBeVisible :: Maybe Int -> Int -> Int -> Int -> Bool
 canBeVisible Nothing _ _ _ = True
 canBeVisible (Just howMany) h place max = howMany <= (max - h + place + 1)
 
---  isLineOk (Pyramids [Just 3,Nothing,Just 1,Nothing] [Nothing, Nothing, Nothing, Nothing] [Nothing, Nothing, Just 4, Nothing] [Nothing, Just 3, Nothing, Nothing]) (Board [[4,3,1,2],[0,0,0,0],[0,0,0,0],[0,0,0,0]]) (0,4)
--- -- funkcja sprawdzająca, czy uzupelniony cały wiersz jest zgodny ze wszystkimi ograniczeniami narzuconymi przez wskazówki
+-- funkcja sprawdzająca, czy uzupelniony cały wiersz jest zgodny ze wszystkimi ograniczeniami narzuconymi przez wskazówki
 isLineOk :: Pyramids -> Board -> Cell -> Bool
 isLineOk (Pyramids t b l r) (Board rows) (x,y) = fromTop && fromBottom && fromLeft  && fromRight 
     where
@@ -85,27 +84,33 @@ isLineOk (Pyramids t b l r) (Board rows) (x,y) = fromTop && fromBottom && fromLe
     fromLeft = isRowOk l (transpose rows) (x == ((getSize $ Board rows)-1))
     fromRight = isRowOk r (map reverse(transpose rows)) (x == ((getSize $ Board rows)-1))
     
--- column -- sprawdzenie, czy w danym wierszu widać tyle piramid ile narzucają ograniczenia
+-- sprawdzenie, czy w danyej kolumnie widać tyle piramid ile narzucają ograniczenia
 isColOk :: Maybe Int -> Int -> Bool
 isColOk Nothing _ = True
 isColOk (Just constraint) actualNum = constraint == actualNum
 
--- -- sprawdzenie, czy w danej kolumnie możliwe jest spełnienie ograniczeń
--- co gdy mamy przypadek koncowy ???
+-- sprawdzenie, czy w danym wierszu możliwe jest spełnienie ograniczeń
 isRowOk :: [Maybe Int] -> [[Int]] -> Bool -> Bool
 isRowOk [] _ _ = True
-isRowOk (x:xs) rows isLastCol | getPyramidNumber (x) == 0 = isRowOk xs rows isLastCol
-                              | isLastCol && ((countVisiblePyramids $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) == (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
-                              | isLastCol == False && ((countVisiblePyramids $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) <= (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
-                              | otherwise = False
+isRowOk (x:xs) rows isLastCol | isNotNothing && (isTooManyPyramids || isNotEnoughPyramidsInLastColumn) = False
+                              | otherwise = isRowOk xs rows isLastCol
+                              where 
+                                isNotNothing = x /= Nothing
+                                size = getSize $ Board rows
+                                row = rows !! (size - length (x:xs))
+                                conditionPyramidNumber = getPyramidNumber (x)
+                                visiblePyramidsNumber = countVisiblePyramids row
+                                isTooManyPyramids = visiblePyramidsNumber > conditionPyramidNumber
+                                isNotEnoughPyramidsInLastColumn = isLastCol && (visiblePyramidsNumber /= conditionPyramidNumber)
 
+-- wyciągnięcie liczby z wartości (Maybe Int)
 getPyramidNumber :: Maybe Int -> Int
 getPyramidNumber Nothing = 0
 getPyramidNumber (Just constraint) = constraint
 
--- obliczenie ile piramid jest widocznych w danym wierszu lub kolumnie
+-- odpowiada za obliczenie ile piramid jest widocznych w danym wierszu lub kolumnie
 countVisiblePyramids :: [Int] -> Int
 countVisiblePyramids row = countVisible 0 row
                         where countVisible maxFound [] = 0
-                              countVisible maxFound (x:xs) | maxFound >= x = countVisible maxFound xs
+                              countVisible maxFound (x:xs) | maxFound >= x = countVisible maxFound xs -- wystapienia kolejnych zer sa pomijane w tym warunkiem
                                                            | otherwise = 1 + countVisible x xs
