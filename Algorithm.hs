@@ -21,7 +21,7 @@ nextStep pyramids board height cell tmp=
         if (isNextRow cell) then
             nextStep pyramids board height (startNextRow cell) (tmp-1)
         else board
-    else prevStep pyramids board prevHeight prevCell (tmp-1)-- jeśli niepoprawnie wypełniono wiersz to zmienia wartość wstawioną dla ostatniej komórki
+    else prevStep pyramids board prevHeight prevCell (tmp-1) -- jeśli niepoprawnie wypełniono wiersz to zmienia wartość wstawioną dla ostatniej komórki
         where
         isNextRow (x, _) = not(x == ((getSize board) - 1))
         startNextRow (x,y) = (x+1, 0)
@@ -76,8 +76,6 @@ canBeVisible :: Maybe Int -> Int -> Int -> Int -> Bool
 canBeVisible Nothing _ _ _ = True
 canBeVisible (Just howMany) h place max = howMany <= (max - h + place + 1)
 
-
--- TODO - repair
 --  isLineOk (Pyramids [Just 3,Nothing,Just 1,Nothing] [Nothing, Nothing, Nothing, Nothing] [Nothing, Nothing, Just 4, Nothing] [Nothing, Just 3, Nothing, Nothing]) (Board [[4,3,1,2],[0,0,0,0],[0,0,0,0],[0,0,0,0]]) (0,4)
 -- -- funkcja sprawdzająca, czy uzupelniony cały wiersz jest zgodny ze wszystkimi ograniczeniami narzuconymi przez wskazówki
 isLineOk :: Pyramids -> Board -> Cell -> Bool
@@ -99,19 +97,17 @@ isRowOk :: [Maybe Int] -> [[Int]] -> Bool -> Bool
 isRowOk [] _ _ = True
 isRowOk (x:xs) rows isLastCol | getPyramidNumber (x) == 0 = isRowOk xs rows isLastCol
                               | isLastCol && ((countVisible 1 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) == (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
-                              | isLastCol == False && ((countVisible 1 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) <= (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
+                              | isLastCol == False && ((myCountVisible 0 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) <= (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
                               | otherwise = False
 
 getPyramidNumber :: Maybe Int -> Int
 getPyramidNumber Nothing = 0
 getPyramidNumber (Just constraint) = constraint
 
---     actualNums = map (countVisible 1) cols
---     checkCol :: Maybe Int -> Int -> Bool
---     checkCol Nothing _ = True
---     checkCol (Just constraint) actualNum = 
---         if (up) then constraint <= actualNum else constraint >= actualNum  -- jeśli liczymy od dołu to sprawdzamy, czy po uzupełnieniu pustych wartości rosnąco, nie widzimy za mało piramid
--- -- -- jeśli od góry to czy nie widzimy więcej piramid niż można w danej kolumnie
+myCountVisible :: Int -> [Int] -> Int
+myCountVisible maxFound [] = 0
+myCountVisible maxFound (x:xs) | maxFound >= x = myCountVisible maxFound xs
+                               | otherwise = 1 + myCountVisible x xs
 
 --  -- obliczenie ile piramid jest widocznych w danym wierszu / kolumnie
 countVisible :: Int -> [Int] -> Int

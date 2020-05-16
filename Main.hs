@@ -27,7 +27,7 @@ puzzle = do
     putStrLn $ "Assumptions lists: " ++ show assumptions
     putStrLn "\nPuzzle solving:"
     let board = createEmptyBoard size
-    let solution = solvePuzzle assumptions board 60
+    let solution = solvePuzzle assumptions board 1120
     putStrLn $ show solution
     showSolutionResults solution
     putStrLn "\n\tPuzzle End"
