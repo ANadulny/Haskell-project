@@ -85,8 +85,8 @@ isLineOk (Pyramids t b l r) (Board rows) (x,y) = fromTop && fromBottom && fromLe
     where
     fromTop = isColOk (t !! x) (countVisible 1 (reverse(rows !! x)))
     fromBottom = isColOk (b !! x) (countVisible 1 (rows !! x))
-    fromLeft = isRowOk l (transpose rows)
-    fromRight = isRowOk r (map reverse(transpose rows))
+    fromLeft = isRowOk l (transpose rows) (x == ((getSize $ Board rows)-1))
+    fromRight = isRowOk r (map reverse(transpose rows)) (x == ((getSize $ Board rows)-1))
     
 -- column -- sprawdzenie, czy w danym wierszu widać tyle piramid ile narzucają ograniczenia
 isColOk :: Maybe Int -> Int -> Bool
@@ -95,11 +95,12 @@ isColOk (Just constraint) actualNum = constraint == actualNum
 
 -- -- sprawdzenie, czy w danej kolumnie możliwe jest spełnienie ograniczeń
 -- co gdy mamy przypadek koncowy ???
-isRowOk :: [Maybe Int] -> [[Int]] -> Bool
-isRowOk [] _ = True
-isRowOk (x:xs) rows | getPyramidNumber (x) == 0 = isRowOk xs rows
-                    | ((countVisible 1 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) <= (getPyramidNumber (x)) ) == True = isRowOk xs rows
-                    | otherwise = False
+isRowOk :: [Maybe Int] -> [[Int]] -> Bool -> Bool
+isRowOk [] _ _ = True
+isRowOk (x:xs) rows isLastCol | getPyramidNumber (x) == 0 = isRowOk xs rows isLastCol
+                              | isLastCol && ((countVisible 1 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) == (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
+                              | isLastCol == False && ((countVisible 1 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) <= (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
+                              | otherwise = False
 
 getPyramidNumber :: Maybe Int -> Int
 getPyramidNumber Nothing = 0

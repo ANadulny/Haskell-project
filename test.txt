@@ -6,4 +6,4 @@ Board [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
 
 
-showSolutionResults(solvePuzzle (Pyramids [Just 3,Nothing,Just 1,Nothing] [Nothing, Nothing, Nothing, Nothing] [Nothing, Nothing, Just 4, Nothing] [Nothing, Just 3, Nothing, Nothing]) (createEmptyBoard 4) 11)
+showSolutionResults(solvePuzzle (Pyramids [Just 3,Nothing,Just 1,Nothing] [Nothing, Nothing, Nothing, Nothing] [Nothing, Just 4, Nothing, Nothing] [Nothing, Nothing, Just 3, Nothing]) (createEmptyBoard 4) 11)
