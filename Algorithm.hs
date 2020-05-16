@@ -5,23 +5,23 @@ import Data.List
 
 -- funkcja rozwiązująca łamigłówkę (pobiera wskazówki i tablicę, na której mają zostac rozmieszczone piramidy)
 -- rozpoczyna rozwiązanie próbując umieścić na polu (0,0) piramidę o max wysokości
-solvePuzzle :: Pyramids -> Board -> Int-> Board
-solvePuzzle pyramids board steps = let highestPyramid = getSize board in
-                               transss(nextStep pyramids board highestPyramid (0,0) steps)
+solvePuzzle :: Pyramids -> Board -> Board
+solvePuzzle pyramids board = let highestPyramid = getSize board in
+                               transss(nextStep pyramids board highestPyramid (0,0))
 
 transss :: Board -> Board
 transss (Board rows) = Board (transpose (rows))
 
 -- -- funkcja wywoływana po umieszczeniu na tablicy piramidy
-nextStep :: Pyramids -> Board -> Int -> Cell -> Int -> Board
-nextStep pyramids board height cell tmp= 
+nextStep :: Pyramids -> Board -> Int -> Cell -> Board
+nextStep pyramids board height cell = 
     if (isOnBoard (getSize board) cell) then --sprawdza czy wypełniono cały wiersz
-        pyramidOnCell pyramids board cell height tmp-- jeśli nie to próbuje wstawić piramidę na wskazanym polu
+        pyramidOnCell pyramids board cell height -- jeśli nie to próbuje wstawić piramidę na wskazanym polu
     else if (isLineOk pyramids board cell) then -- sprawdza, czy poprawnie wypełniono wiersz
         if (isNextRow cell) then
-            nextStep pyramids board height (startNextRow cell) (tmp-1)
+            nextStep pyramids board height (startNextRow cell)
         else board
-    else prevStep pyramids board prevHeight prevCell (tmp-1) -- jeśli niepoprawnie wypełniono wiersz to zmienia wartość wstawioną dla ostatniej komórki
+    else prevStep pyramids board prevHeight prevCell -- jeśli niepoprawnie wypełniono wiersz to zmienia wartość wstawioną dla ostatniej komórki
         where
         isNextRow (x, _) = not(x == ((getSize board) - 1))
         startNextRow (x,y) = (x+1, 0)
@@ -30,25 +30,24 @@ nextStep pyramids board height cell tmp=
 
 -- -- funkcja próbująca umieścić piramidę na polu
 -- -- zaczyna od umieszczenia piramidy o max wysokości, jeśli niemożliwe to w kolejnych krokach zmniejsza wysokość
-pyramidOnCell :: Pyramids -> Board -> Cell -> Int -> Int -> Board
-pyramidOnCell pyramids board (x,y) h tmp =
- if (tmp>0) then 
-    if (h > 0) && (tmp>0) then
+pyramidOnCell :: Pyramids -> Board -> Cell -> Int -> Board
+pyramidOnCell pyramids board (x,y) h =
+    if h > 0 then
         if ((isUnique board (x,y) h) && (pyramidConstraint pyramids board (x,y) h)) then --sprawdza czy można umieścić piramidę
-            nextStep pyramids (placePyramidOnBoard board (x,y) h) (getSize board) (x, y+1) (tmp-1)
+            nextStep pyramids (placePyramidOnBoard board (x,y) h) (getSize board) (x, y+1)
         else
-            pyramidOnCell pyramids board (x,y) (h-1) tmp
-    else prevStep pyramids (placePyramidOnBoard board (x,y) 0) prevHeight prevCell (tmp-1)-- jeśli żadna wysokość nie pasuje na danej komórce, to umieszcza 0 i zmniejsza wartość poprzedniej komórki
- else board
- where 
+            pyramidOnCell pyramids board (x,y) (h-1)
+    else prevStep pyramids (placePyramidOnBoard board (x,y) 0) prevHeight prevCell -- jeśli żadna wysokość nie pasuje na danej komórce, to umieszcza 0 i zmniejsza wartość poprzedniej komórki
+    where 
         prevCell = previousCell board (x,y)
         prevHeight = getCell board prevCell
+
 -- -- funkcja wywoływana, gdy trzeba było cofnąć się do poprzedniej komórki
-prevStep :: Pyramids -> Board -> Int -> Cell -> Int ->Board
-prevStep pyramids board height cell tmp = 
+prevStep :: Pyramids -> Board -> Int -> Cell ->Board
+prevStep pyramids board height cell = 
     if (height == 1) then -- jeśli była 1 to umieszcza 0 i probuje umiescic w poprzedniej komorce wartość o 1 mniejszą
-        nextStep pyramids (placePyramidOnBoard board cell 0) (prevHeight-1) prevCell tmp
-    else nextStep pyramids board (height-1) cell tmp -- jeśli była >1 to próbuje umieścić na tym polu wartość o 1 mniejszą
+        nextStep pyramids (placePyramidOnBoard board cell 0) (prevHeight-1) prevCell
+    else nextStep pyramids board (height-1) cell -- jeśli była >1 to próbuje umieścić na tym polu wartość o 1 mniejszą
         where 
         prevCell = previousCell board cell
         prevHeight = getCell board prevCell
@@ -81,8 +80,8 @@ canBeVisible (Just howMany) h place max = howMany <= (max - h + place + 1)
 isLineOk :: Pyramids -> Board -> Cell -> Bool
 isLineOk (Pyramids t b l r) (Board rows) (x,y) = fromTop && fromBottom && fromLeft  && fromRight 
     where
-    fromTop = isColOk (t !! x) (countVisible 1 (reverse(rows !! x)))
-    fromBottom = isColOk (b !! x) (countVisible 1 (rows !! x))
+    fromTop = isColOk (t !! x) (countVisiblePyramids (reverse(rows !! x)))
+    fromBottom = isColOk (b !! x) (countVisiblePyramids (rows !! x))
     fromLeft = isRowOk l (transpose rows) (x == ((getSize $ Board rows)-1))
     fromRight = isRowOk r (map reverse(transpose rows)) (x == ((getSize $ Board rows)-1))
     
@@ -96,30 +95,17 @@ isColOk (Just constraint) actualNum = constraint == actualNum
 isRowOk :: [Maybe Int] -> [[Int]] -> Bool -> Bool
 isRowOk [] _ _ = True
 isRowOk (x:xs) rows isLastCol | getPyramidNumber (x) == 0 = isRowOk xs rows isLastCol
-                              | isLastCol && ((countVisible 1 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) == (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
-                              | isLastCol == False && ((myCountVisible 0 $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) <= (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
+                              | isLastCol && ((countVisiblePyramids $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) == (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
+                              | isLastCol == False && ((countVisiblePyramids $ rows !! ( (getSize $ Board rows) - (length(x:xs)) )) <= (getPyramidNumber (x)) ) == True = isRowOk xs rows isLastCol
                               | otherwise = False
 
 getPyramidNumber :: Maybe Int -> Int
 getPyramidNumber Nothing = 0
 getPyramidNumber (Just constraint) = constraint
 
-myCountVisible :: Int -> [Int] -> Int
-myCountVisible maxFound [] = 0
-myCountVisible maxFound (x:xs) | maxFound >= x = myCountVisible maxFound xs
-                               | otherwise = 1 + myCountVisible x xs
-
---  -- obliczenie ile piramid jest widocznych w danym wierszu / kolumnie
-countVisible :: Int -> [Int] -> Int
-countVisible i [x] = i
-countVisible i (x:xs) 
-    |x == 0     = countVisible i (fillAsc (xs) (length (0:xs))) -- jeśli na początku sprawdzanej listy są zera, to sa uzupełniane
-    |x < head xs    = countVisible (i+1) xs
-    |head xs == 0   = i+1 -- jeśli na końcu listy są zera, to zwraca wartość piramid widocznych do tego momentu
-    |otherwise  = countVisible i ([x] ++ tail xs)
-
--- -- usupełnia zera na danej liście rosnąco, wartościami, które jeszcze w nim nie wystąpiły
-fillAsc [x] n        = sort([1..n] \\ [x]) ++ [x]
-fillAsc (x:xs) n
-    |x == 0     = fillAsc xs n
-    |otherwise  = sort([1..n] \\ (x:xs)) ++ (x:xs)
+-- obliczenie ile piramid jest widocznych w danym wierszu lub kolumnie
+countVisiblePyramids :: [Int] -> Int
+countVisiblePyramids row = countVisible 0 row
+                        where countVisible maxFound [] = 0
+                              countVisible maxFound (x:xs) | maxFound >= x = countVisible maxFound xs
+                                                           | otherwise = 1 + countVisible x xs

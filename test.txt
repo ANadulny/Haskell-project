@@ -7,9 +7,24 @@ Board [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
 
 showSolutionResults(solvePuzzle (Pyramids [Just 3,Nothing,Just 1,Nothing] [Nothing, Nothing, Nothing, Nothing] [Nothing, Just 4, Nothing, Nothing] [Nothing, Nothing, Just 3, Nothing]) (createEmptyBoard 4) 11)
+	[2,1,4,3]
+	[3,4,2,1]
+	[1,2,3,4]
+	[4,3,1,2]
+
 
 showSolutionResults(solvePuzzle (Pyramids [Nothing,Just 2,Nothing,Nothing] [Nothing,Just 2,Nothing,Nothing] [Just 3,Nothing,Just 3,Nothing] [Nothing,Just 3,Just 2,Just 3]) (createEmptyBoard 4) 4)
+	[4,3,1,2]
+	[1,2,4,3]
+	[3,4,2,1]
+	[2,1,3,4]
 
 isLineOk (Pyramids [Nothing,Just 2,Nothing,Nothing] [Nothing,Just 2,Nothing,Nothing] [Just 3,Nothing,Just 3,Nothing] [Nothing,Just 3,Just 2,Just 3]) (Board [[2,4,1,3],[0,0,0,0],[0,0,0,0],[0,0,0,0]]) (0,4)
 
+showSolutionResults(solvePuzzle ( Pyramids [Nothing,Just 3,Just 1,Nothing,Nothing] [Nothing,Nothing,Nothing,Just 3,Nothing] [Nothing,Just 2,Just 2,Just 3,Nothing] [Just 3,Nothing,Just 4,Nothing,Nothing]) (createEmptyBoard 5) 104600)
+	[3,1,5,4,2]
+	[1,3,2,5,4]
+	[2,5,4,3,1]
+	[4,2,3,1,5]
+	[5,4,1,2,3]
 
